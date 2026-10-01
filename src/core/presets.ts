@@ -4,22 +4,22 @@ export const PRESETS: Record<AssetClass, LaunchConfig> = {
   rwa: {
     id: 'rwa-stable', name: 'RWA Stable Discovery', assetClass: 'rwa',
     curve: { kind: 'long', initialPriceUsd: 0.98, terminalPriceUsd: 1.12, exponent: 1.35 },
-    supplyTokens: 1_000_000, saleAllocationBps: 3500, targetRaiseUsd: 350_000,
-    tradeFeeBps: 80, creatorFeeBps: 20, migrationFeeBps: 20,
+    supplyTokens: 1_000_000, saleAllocationBps: 7000, targetRaiseUsd: 350_000,
+    tradeFeeBps: 80, creatorFeeBps: 20, migrationFeeBps: 25,
     graduationThresholdUsd: 280_000, maxWalletBps: 250, migrationPool: 'damm-v2',
   },
   stock: {
     id: 'stock-discovery', name: 'Tokenized Stock Discovery', assetClass: 'stock',
     curve: { kind: 'linear', initialPriceUsd: 24, terminalPriceUsd: 30 },
-    supplyTokens: 100_000, saleAllocationBps: 3000, targetRaiseUsd: 800_000,
+    supplyTokens: 10_000_000, saleAllocationBps: 7000, targetRaiseUsd: 800_000,
     tradeFeeBps: 60, creatorFeeBps: 15, migrationFeeBps: 25,
     graduationThresholdUsd: 650_000, maxWalletBps: 300, migrationPool: 'damm-v2',
   },
   'ai-agent': {
     id: 'agent-growth', name: 'AI Agent Growth', assetClass: 'ai-agent',
     curve: { kind: 'exponential', initialPriceUsd: 0.02, terminalPriceUsd: 0.16, exponent: 2.1 },
-    supplyTokens: 100_000_000, saleAllocationBps: 4500, targetRaiseUsd: 2_500_000,
-    tradeFeeBps: 180, creatorFeeBps: 50, migrationFeeBps: 20,
+    supplyTokens: 100_000_000, saleAllocationBps: 6500, targetRaiseUsd: 2_500_000,
+    tradeFeeBps: 180, creatorFeeBps: 45, migrationFeeBps: 25,
     graduationThresholdUsd: 1_800_000, maxWalletBps: 600, migrationPool: 'damm-v2',
   },
   meme: {

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { clonePreset, PRESETS } from '../src/core/presets.ts';
 import { isSafeToExport, lintConfig } from '../src/core/lint.ts';
+import { buildMeteoraCurve, toMeteoraBuildParams } from '../src/core/meteora.ts';
 import { priceAt, simulate, stressScenarios } from '../src/core/simulate.ts';
 
 test('all shipped presets pass export-blocking lint rules', () => {
@@ -15,7 +16,7 @@ test('linter blocks unsafe prices, allocation, fees, and graduation', () => {
   config.tradeFeeBps = 950;
   config.graduationThresholdUsd = config.targetRaiseUsd * 2;
   const codes = lintConfig(config).map((finding) => finding.code);
-  assert.deepEqual(codes, ['ALLOCATION_RANGE', 'GRADUATION_RANGE', 'PRICE_INVALID', 'FEES_EXCESSIVE']);
+  assert.deepEqual(codes, ['ALLOCATION_RANGE', 'GRADUATION_RANGE', 'PRICE_INVALID', 'FEES_EXCESSIVE', 'CREATOR_FEE_SHARE']);
 });
 
 test('linear curve interpolates deterministically', () => {
@@ -42,4 +43,19 @@ test('stress suite exposes whale concentration', () => {
   const scenarios = stressScenarios(config);
   assert.ok(scenarios.whale.largestWalletBps > scenarios.organic.largestWalletBps);
   assert.equal(scenarios.thin.graduated, false);
+});
+
+test('Meteora adapter emits DAMM v2 buildCurve parameters', () => {
+  const config = clonePreset('rwa');
+  const params = toMeteoraBuildParams(config);
+  assert.equal(params.percentageSupplyOnMigration, 30);
+  assert.equal(params.migrationQuoteThreshold, 280_000);
+  assert.equal(params.fee.creatorTradingFeePercentage, 25);
+  for (const preset of Object.values(PRESETS)) assert.doesNotThrow(() => buildMeteoraCurve(preset));
+});
+
+test('Meteora adapter refuses a config blocked by the linter', () => {
+  const config = clonePreset('stock');
+  config.migrationFeeBps = 20;
+  assert.throws(() => toMeteoraBuildParams(config), /MIGRATION_FEE_OPTION/);
 });

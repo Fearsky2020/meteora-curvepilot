@@ -1,5 +1,7 @@
 import type { LaunchConfig, LintFinding } from './model';
 
+const SUPPORTED_MIGRATION_FEES = new Set([25, 30, 100, 200, 400, 600]);
+
 export function lintConfig(config: LaunchConfig): LintFinding[] {
   const findings: LintFinding[] = [];
   const error = (code: string, message: string) => findings.push({ severity: 'error', code, message });
@@ -22,8 +24,19 @@ export function lintConfig(config: LaunchConfig): LintFinding[] {
   if (config.curve.terminalPriceUsd < config.curve.initialPriceUsd) {
     error('PRICE_DESCENDING', 'Terminal price cannot be below the initial price.');
   }
-  if (totalFees > 1000) error('FEES_EXCESSIVE', 'Combined fees cannot exceed 10%.');
-  else if (totalFees > 500) warn('FEES_HIGH', 'Combined fees exceed 5%.');
+  if (totalFees > 1000) error('FEES_EXCESSIVE', 'Combined fee controls cannot exceed 10%.');
+  else if (totalFees > 500) warn('FEES_HIGH', 'Combined fee controls exceed 5%.');
+  if (config.tradeFeeBps === 0 && config.creatorFeeBps !== 0) {
+    error('CREATOR_FEE_WITHOUT_TRADE_FEE', 'Creator trading fee share requires a non-zero trade fee.');
+  } else if (config.tradeFeeBps > 0) {
+    const creatorShare = (config.creatorFeeBps / config.tradeFeeBps) * 100;
+    if (!Number.isInteger(creatorShare) || creatorShare < 0 || creatorShare > 100) {
+      error('CREATOR_FEE_SHARE', 'Creator fee must map to a whole-number share from 0% to 100% of the trade fee.');
+    }
+  }
+  if (!SUPPORTED_MIGRATION_FEES.has(config.migrationFeeBps)) {
+    error('MIGRATION_FEE_OPTION', 'Migration fee must use a Meteora DAMM v2 supported fixed option: 25, 30, 100, 200, 400, or 600 bps.');
+  }
   if (config.maxWalletBps <= 0 || config.maxWalletBps > 2000) {
     error('WALLET_LIMIT_RANGE', 'Maximum wallet must be between 0% and 20%.');
   }

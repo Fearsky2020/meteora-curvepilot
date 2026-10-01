@@ -3,24 +3,21 @@ import { Adapter, UnifiedWalletProvider } from '@jup-ag/wallet-adapter';
 import type { AppProps } from 'next/app';
 import { ThemeProvider, useTheme } from 'next-themes';
 import { Toaster } from 'sonner';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
+import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare';
 import { useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useWindowWidthListener } from '@/lib/device';
 
 function AppProviders({ Component, pageProps }: AppProps) {
   const { resolvedTheme } = useTheme();
-
-  const wallets: Adapter[] = useMemo(() => {
-    return [new PhantomWalletAdapter(), new SolflareWalletAdapter()].filter(
-      (item) => item && item.name && item.icon
-    ) as Adapter[];
-  }, []);
-
+  const wallets: Adapter[] = useMemo(
+    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()] as Adapter[],
+    []
+  );
   const queryClient = useMemo(() => new QueryClient(), []);
 
   useWindowWidthListener();
-
   const walletTheme = resolvedTheme === 'light' ? 'light' : 'dark';
 
   return (
@@ -28,15 +25,14 @@ function AppProviders({ Component, pageProps }: AppProps) {
       <UnifiedWalletProvider
         wallets={wallets}
         config={{
-          env: 'mainnet-beta',
-          autoConnect: true,
+          env: 'devnet',
+          autoConnect: false,
           metadata: {
-            name: 'UnifiedWallet',
-            description: 'UnifiedWallet',
-            url: 'https://jup.ag',
-            iconUrls: ['https://jup.ag/favicon.ico'],
+            name: 'Meteora CurvePilot',
+            description: 'Devnet-only DBC launch configuration simulator',
+            url: 'https://github.com/Fearsky2020/meteora-curvepilot',
+            iconUrls: [],
           },
-          // notificationCallback: WalletNotification,
           theme: walletTheme,
           lang: 'en',
         }}
