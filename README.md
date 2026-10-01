@@ -4,6 +4,8 @@ AI-native launch design lab for Meteora Dynamic Bonding Curve (DBC) and DAMM v2.
 
 CurvePilot helps builders choose, simulate, audit, and export launch configurations before they risk capital. It focuses on four asset classes highlighted by the Crypto World's Fair x Meteora track: RWAs, tokenized stocks, AI-agent assets, and memes.
 
+![CurvePilot dashboard](docs/curvepilot-dashboard.png)
+
 ## What works
 
 - Four editable launch presets with deterministic stress scenarios.
