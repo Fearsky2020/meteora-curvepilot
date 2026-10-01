@@ -5,6 +5,7 @@ import { clonePreset, PRESETS } from '@/core/presets';
 import { lintConfig } from '@/core/lint';
 import { stressScenarios } from '@/core/simulate';
 import { downloadableMeteoraParams } from '@/core/meteora';
+import { configReceipt } from '@/core/receipt';
 import type { AssetClass, LaunchConfig } from '@/core/model';
 
 const ASSET_LABELS: Record<AssetClass, string> = {
@@ -33,6 +34,7 @@ export default function CurvePilotPage() {
   const findings = useMemo(() => lintConfig(config), [config]);
   const scenarios = useMemo(() => stressScenarios(config), [config]);
   const blocking = findings.filter((finding) => finding.severity === 'error').length;
+  const receipt = useMemo(() => configReceipt(config), [config]);
 
   const chooseAsset = (next: AssetClass) => {
     setAssetClass(next);
@@ -181,6 +183,10 @@ export default function CurvePilotPage() {
                   Download Meteora DBC config
                 </button>
                 <p className="mt-3 text-center text-xs text-neutral-500">SDK-validated parameters · USDC quote · devnet only</p>
+                <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-xs">
+                  <span className="uppercase tracking-wider text-neutral-500">Audit receipt</span>
+                  <code className="text-primary">{receipt}</code>
+                </div>
               </div>
             </div>
           </section>

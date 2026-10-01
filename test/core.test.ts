@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { clonePreset, PRESETS } from '../src/core/presets.ts';
 import { isSafeToExport, lintConfig } from '../src/core/lint.ts';
-import { buildMeteoraCurve, toMeteoraBuildParams } from '../src/core/meteora.ts';
+import { buildMeteoraCurve, downloadableMeteoraParams, toMeteoraBuildParams } from '../src/core/meteora.ts';
+import { configReceipt } from '../src/core/receipt.ts';
 import { priceAt, simulate, stressScenarios } from '../src/core/simulate.ts';
 
 test('all shipped presets pass export-blocking lint rules', () => {
@@ -52,6 +53,16 @@ test('Meteora adapter emits DAMM v2 buildCurve parameters', () => {
   assert.equal(params.migrationQuoteThreshold, 280_000);
   assert.equal(params.fee.creatorTradingFeePercentage, 25);
   for (const preset of Object.values(PRESETS)) assert.doesNotThrow(() => buildMeteoraCurve(preset));
+});
+
+test('audit receipt is deterministic and included in downloads', () => {
+  const config = clonePreset('ai-agent');
+  const first = configReceipt(config);
+  assert.match(first, /^cp-[0-9a-f]{8}$/);
+  assert.equal(configReceipt(structuredClone(config)), first);
+  assert.equal(downloadableMeteoraParams(config).auditReceipt, first);
+  config.targetRaiseUsd += 1;
+  assert.notEqual(configReceipt(config), first);
 });
 
 test('Meteora adapter refuses a config blocked by the linter', () => {

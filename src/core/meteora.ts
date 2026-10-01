@@ -12,6 +12,7 @@ import {
 } from '@meteora-ag/dynamic-bonding-curve-sdk';
 import type { LaunchConfig } from './model';
 import { isSafeToExport, lintConfig } from './lint.ts';
+import { configReceipt } from './receipt.ts';
 
 const MIGRATION_OPTIONS: Record<number, MigrationFeeOption> = {
   25: MigrationFeeOption.FixedBps25,
@@ -98,6 +99,7 @@ export function downloadableMeteoraParams(config: LaunchConfig) {
     cluster: 'devnet',
     quoteAsset: 'USDC',
     generatedBy: 'CurvePilot',
+    auditReceipt: configReceipt(config),
     sourceConfig: config,
     buildCurveParams: toMeteoraBuildParams(config),
   };
