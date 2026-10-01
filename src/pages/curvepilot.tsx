@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import Header from '@/components/Header';
 import { clonePreset, PRESETS } from '@/core/presets';
 import { lintConfig } from '@/core/lint';
-import { stressScenarios } from '@/core/simulate';
+import { priceAt, stressScenarios } from '@/core/simulate';
 import { downloadableMeteoraParams } from '@/core/meteora';
 import { configReceipt } from '@/core/receipt';
 import type { AssetClass, LaunchConfig } from '@/core/model';
@@ -24,6 +24,56 @@ function Metric({ label, value, tone = 'neutral' }: { label: string; value: stri
     <div className="rounded-xl border border-neutral-800 bg-neutral-925 p-4">
       <div className="text-xs uppercase tracking-[0.18em] text-neutral-500">{label}</div>
       <div className={`mt-2 text-xl font-semibold ${toneClass}`}>{value}</div>
+    </div>
+  );
+}
+
+function CurveChart({ config }: { config: LaunchConfig }) {
+  const width = 720;
+  const height = 190;
+  const padX = 22;
+  const padY = 18;
+  const samples = Array.from({ length: 33 }, (_, index) => index / 32);
+  const prices = samples.map((progress) => priceAt(config, progress));
+  const maxPrice = Math.max(...prices, Number.EPSILON);
+  const coords = prices.map((price, index) => ({
+    x: padX + samples[index] * (width - padX * 2),
+    y: height - padY - price / maxPrice * (height - padY * 2),
+  }));
+  const line = coords.map(({ x, y }, index) => (index === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1)).join(' ');
+  const area = line + ' L ' + (width - padX) + ' ' + (height - padY) + ' L ' + padX + ' ' + (height - padY) + ' Z';
+
+  return (
+    <div className="mt-6 rounded-xl border border-neutral-800 bg-neutral-950 p-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-white">Price curve preview</h3>
+          <p className="mt-1 text-xs text-neutral-500">Modeled token price across sale progress</p>
+        </div>
+        <p className="font-mono text-xs text-neutral-400">
+          {formatUsd(config.curve.initialPriceUsd)} → {formatUsd(config.curve.terminalPriceUsd)}
+        </p>
+      </div>
+      <svg className="mt-4 h-auto w-full" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${config.curve.kind} price curve from zero to full sale progress`}>
+        <defs>
+          <linearGradient id="curvepilot-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        {[0.25, 0.5, 0.75].map((fraction) => (
+          <line key={fraction} x1={padX} x2={width - padX} y1={padY + fraction * (height - padY * 2)} y2={padY + fraction * (height - padY * 2)} stroke="currentColor" strokeOpacity="0.12" strokeDasharray="4 6" />
+        ))}
+        <path d={area} fill="url(#curvepilot-area)" className="text-primary" />
+        <path d={line} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-primary" />
+        <circle cx={coords[0].x} cy={coords[0].y} r="4" fill="currentColor" className="text-primary" />
+        <circle cx={coords[coords.length - 1].x} cy={coords[coords.length - 1].y} r="4" fill="currentColor" className="text-primary" />
+      </svg>
+      <div className="flex justify-between text-[11px] uppercase tracking-wider text-neutral-600">
+        <span>0% sold</span>
+        <span>{config.curve.kind} curve</span>
+        <span>100% sold</span>
+      </div>
     </div>
   );
 }
@@ -141,6 +191,8 @@ export default function CurvePilotPage() {
                   <Metric label="Thin-liquidity raise" value={formatUsd(scenarios.thin.raisedUsd)} />
                   <Metric label="Final modeled price" value={formatUsd(scenarios.organic.finalPriceUsd)} />
                 </div>
+
+                <CurveChart config={config} />
 
                 <div className="mt-6 overflow-hidden rounded-xl border border-neutral-800">
                   <table className="w-full text-left text-sm">
